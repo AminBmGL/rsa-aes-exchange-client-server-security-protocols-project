@@ -18,8 +18,8 @@ Generate keys
 ---------------
 ~~~~~~~~~~~~~~~~~~
 node generate
-~~~~~~~~~~~~~~~~~~
 then add the client public key , client private key and server public key to localStorage (look at index.html in the script section to find the structure of data required in localStorage  )
+~~~~~~~~~~~~~~~~~~
 Run
 ---
 ~~~~~~~~~~~~~~~~~~
