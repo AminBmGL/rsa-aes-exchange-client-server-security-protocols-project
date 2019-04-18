@@ -19,14 +19,14 @@ Generate keys
 ~~~~~~~~~~~~~~~~~~
 node generate
 ~~~~~~~~~~~~~~~~~~
-Then overwrite textarea key values in static/index.html
-
+then add the client public key , client private key and server public key to localStorage (look at index.html in the script section to find the structure of data required in localStorage  )
 Run
 ---
 ~~~~~~~~~~~~~~~~~~
 node start
 ~~~~~~~~~~~~~~~~~~
 starting web server with websockets on 3000 port
+
 
 Remarqs
 ---
