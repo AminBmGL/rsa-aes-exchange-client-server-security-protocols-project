@@ -29,7 +29,7 @@ io.on('connection', function(socket){
     // Test AES key sending
     const aesKey = aesWrapper.generateKey();
     let encryptedAesKey = rsaWrapper.encrypt(rsaWrapper.clientPub, (aesKey.toString('base64')));
-    console.log("----------------Server generated a session key (AES) encrypted and i'm sending it to the client")
+    console.log("----------------Server generated a session key (AES) encrypted and  sent it to the client")
     socket.emit('send key from server to client', encryptedAesKey);
 
     // Test accepting dummy AES key message
