@@ -3,6 +3,21 @@
     'use strict';
 
     var crypto = window.crypto.subtle;
+ 
+
+    // generating the client part of the session key
+    function dec2hex (dec) {
+        return ('0' + dec.toString(16)).substr(-2)
+      }
+      
+      function generateKeyPart (len) {
+        var arr = new Uint8Array((len || 40) / 2)
+        window.crypto.getRandomValues(arr)
+        return Array.from(arr, dec2hex).join('')
+      }
+      
+      
+    
 
     // wrapper for importing AES key for using with crypto library
     function importPublicKey(key){
@@ -15,6 +30,8 @@
                 ["encrypt", "decrypt"] //can be "encrypt", "decrypt", "wrapKey", or "unwrapKey"
             ).then(function (cryptKey) {
                 resolve(cryptKey);
+            },function(err){
+                console.log(err.message)
             });
         });
     }
@@ -41,7 +58,7 @@
         var iv = window.crypto.getRandomValues(new Uint8Array(16));
 
         return new Promise(function (resolve, rej) {
-            importPublicKey(key).then(function (key) {
+            importPublicKey(key).then(function (key){
                 crypto.encrypt(
                     {
                         name: "AES-CBC",
@@ -81,6 +98,7 @@
     }
 
     window.aesWrapper = {
+        generateKeyPart:generateKeyPart,
         encryptMessage: encryptMessage,
         decryptMessage: decryptMessage,
         importPublicKey: importPublicKey,

@@ -7,8 +7,12 @@ aesWrapper.getAlgorithmList = () => {
     console.log(crypto.getCiphers());
 };
 
-aesWrapper.generateKey = () => {
-    return crypto.randomBytes(32);
+aesWrapper.generateKey = (key) => {
+     clientPart=Buffer.from(key)
+    let serverPart= crypto.randomBytes(12)
+    let totalLength=clientPart.length + serverPart.length
+    return  Buffer.concat([serverPart,clientPart],totalLength)
+    
 };
 
 aesWrapper.generateIv = () => {

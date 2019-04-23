@@ -4,41 +4,42 @@
     <title>Encryption/decryption RSA AES</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <link rel="stylesheet" type="text/css" href="/css/style.css" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 </head>
 <body>
 <div class="container">
-    <div class="text-container">
+    <div class="form-group text-container">
         <h2>Server public key</h2>
 
         <!--Put server public key here-->
-        <textarea id="server_public">
+        <textarea class="form-control rounded-0" rows="10" id="server_public">
 
 </textarea>
     </div>
 
-    <div class="text-container">
+    <div class="form-group text-container">
         <h2>Client public key</h2>
 
         <!--Put client public key here-->
-        <textarea id="client_public">
+        <textarea class="form-control rounded-0" rows="10" id="client_public">
 
 </textarea>
     </div>
 
-    <div  class="text-container">
+    <div  class="form-group text-container">
         <h2>Client private key</h2>
 
         <!--Put client private key here-->
-        <textarea id="client_private">
+        <textarea class="form-control rounded-0" rows="8" id="client_private">
 
 </textarea>
     </div>
     <div style="clear: both"></div>
 </div>
 
-<div class="log-container">
+<div style="padding-top:80px" >
     <h1>Log container</h1>
-    <div id="log" style="padding-top: 20px"></div>
+    <div id="log"></div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
@@ -54,6 +55,7 @@
     document.getElementById("client_private").value = localStorage.getItem("clientPrivateKey")
 
     var socket = io();
+    var myAeskeyPart;
     var aesKey;
 
     // Test accepting and sending dummy message encrypted with RSA
@@ -72,23 +74,35 @@
             addLog("I'm sending this RSA encrypted base64 message to the server", encrypted);
             // emit encryption client message to server
             socket.emit('rsa client encrypted message', encrypted);
+            myAeskeyPart=aesWrapper.generateKeyPart(20)
+            rsaWrapper.publicEncrypt(document.getElementById('server_public').value,myAeskeyPart).then(function (encryptedPart) {
+            addLog("I'm sending my Aes key part encrypted to the server", myAeskeyPart);
+            socket.emit('rsa encrypted client part of session key',encryptedPart)
+            })
+
         });
     });
 
     // Test accepting RSA encrypted AES key and sending AES encrypted message to server
-    socket.on('send key from server to client', function (data) {
+    socket.on('send session key from server to client', function (data) {
         addLog('Accepting RSA encrypted AES key (the session key)', data);
         // Decrypting RSA encrypted AES key message
         rsaWrapper.privateDecrypt(document.getElementById('client_private').value, data).then(function (key) {
             addLog('Decrypted AES key (session key) from server in base64 format', key);
-            aesKey = key;
+            addLog('Decrypted AES key (session key) from server decrypted from 64 format', window.atob(key));
 
+            aesKey = key;
             // encrypting test AES message from client to server
-            aesWrapper.encryptMessage(key, 'Hello from client with AES').then(function (encrypted) {
-                addLog('Using the session message that i have received from server ,I m now sending this message Encrypted with this key  to server in base64 format', encrypted);
+            if(window.atob(key).includes(myAeskeyPart)){
+                aesWrapper.encryptMessage(key, 'Hello from client with AES').then(function (encrypted) {
+                addLog(`Using the session message that i have received from server ,I m now sending this message Encrypted with this key  to server in base64 format`, encrypted);
                 //sending encrypting AES message
                 socket.emit('aes client encrypted message', encrypted);
             })
+            }else{
+                addLog('Security Warning', 'I will not trust the server anymore he failed to give me an AES key that much our contract' )
+            }
+            
         });
     });
 
@@ -105,9 +119,11 @@
         var iDiv = document.createElement('div');
         var h = document.createElement('h2');
         h.append(title);
+        h.classList.add("text-primary");
         iDiv.appendChild(h);
         var p = document.createElement('p');
         p.append(content);
+        p.classList.add("text-success");
         iDiv.appendChild(p);
         document.getElementById('log').appendChild(iDiv);
         document.getElementById('log').appendChild(document.createElement('hr'));

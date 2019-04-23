@@ -13,6 +13,8 @@ app.use(express.static(__dirname + '/static'));
 
 // web socket connection event
 io.on('connection', function(socket){
+
+    let aesKey;
     
     // Test sending to client dummy RSA message
     console.log("----------------Server sending 'Hello RSA message from client to server' message  encrypted to the client")
@@ -26,11 +28,20 @@ io.on('connection', function(socket){
         console.log('Decrypted message', '\n', rsaWrapper.decrypt(rsaWrapper.serverPrivate, data));
     });
 
-    // Test AES key sending
-    const aesKey = aesWrapper.generateKey();
+    socket.on('rsa encrypted client part of session key', function (data) {
+        console.log('------------------------------Server received client Aes part encrypted');
+        console.log('Encrypted key part is', '\n', data);
+        clientPart=rsaWrapper.decrypt(rsaWrapper.serverPrivate, data);
+        console.log('decrypted key part is', '\n', clientPart);
+
+        // Test AES key sending
+     aesKey = aesWrapper.generateKey(clientPart);
     let encryptedAesKey = rsaWrapper.encrypt(rsaWrapper.clientPub, (aesKey.toString('base64')));
     console.log("----------------Server generated a session key (AES) encrypted and  sent it to the client")
-    socket.emit('send key from server to client', encryptedAesKey);
+    socket.emit('send session key from server to client', encryptedAesKey);
+    });
+
+    
 
     // Test accepting dummy AES key message
     socket.on('aes client encrypted message', function (data) {
